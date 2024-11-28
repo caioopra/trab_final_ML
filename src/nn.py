@@ -15,7 +15,7 @@ class Module(ABC):
     def parameters(self) -> List[Value]: ...
 
     @abstractmethod
-    def __call__(self, x: List[Value]) -> Value: ...
+    def __call__(self, x: List[Value]) -> Value | List[Value]: ...
 
 
 class Neuron(Module):
@@ -44,3 +44,14 @@ class Neuron(Module):
     def parameters(self) -> List[Value]:
         """Returns the parameters of the neuron (vector with the weights and the bias as last element)"""
         return self.weights + [self.bias]
+
+class Layer(Module):
+    def __init__(self, n_inputs: int, n_outputs: int, activation_fn: Callable = lambda x: x):
+        # create the neurons and set activation function
+        ...
+
+    def __call__(self, x: List[Value]) -> List[Value]:
+        ...
+
+    def parameters(self) -> List[Value]:
+        ...
