@@ -47,11 +47,35 @@ class Neuron(Module):
 
 class Layer(Module):
     def __init__(self, n_inputs: int, n_outputs: int, activation_fn: Callable = lambda x: x):
-        # create the neurons and set activation function
-        ...
+        self.neurons = [
+            Neuron(n_inputs, activation=activation_fn) for _ in range(n_outputs)
+        ]
+        self.activation = activation_fn
 
-    def __call__(self, x: List[Value]) -> List[Value]:
-        ...
+    def __call__(self, x):
+        outs = [n(x) for n in self.neurons]
+        return outs[0] if len(outs) == 1 else outs
 
-    def parameters(self) -> List[Value]:
-        ...
+    def parameters(self):
+        return [p for neuron in self.neurons for p in neuron.parameters()]
+    
+
+def relu(input: list, derivative: bool = False) -> list:
+    if isinstance(input[0], Value):
+        new_nodes = []
+        for x in input:
+            new = Value(max(0, x.data), (x,), "relu")
+
+            def _backward():
+                new.grad += 1 if x.data > 0 else 0
+
+            new._backward = _backward
+
+            new_nodes.append(new)
+
+        return new_nodes
+
+    if derivative:
+        return [1 if x > 0 else 0 for x in input]
+
+    return [max(0, x) for x in input]
