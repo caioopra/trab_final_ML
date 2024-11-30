@@ -48,9 +48,9 @@ class Neuron(Module):
 class Layer(Module):
     def __init__(self, n_inputs: int, n_outputs: int, activation_fn: Callable = lambda x: x):
         self.neurons = [
-            Neuron(n_inputs, activation=activation_fn) for _ in range(n_outputs)
+            Neuron(n_inputs, activation_fn=activation_fn) for _ in range(n_outputs)
         ]
-        self.activation = activation_fn
+        self.activation_fn = activation_fn
 
     def __call__(self, x):
         outs = [n(x) for n in self.neurons]
@@ -64,7 +64,7 @@ def relu(input: list, derivative: bool = False) -> list:
     if isinstance(input[0], Value):
         new_nodes = []
         for x in input:
-            new = Value(max(0, x.data), (x,), "relu")
+            new = Value(data=max(0, x.data), operation="relu", children=(x,))
 
             def _backward():
                 new.grad += 1 if x.data > 0 else 0
