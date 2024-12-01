@@ -46,6 +46,7 @@ class Neuron(Module):
         """Returns the parameters of the neuron (vector with the weights and the bias as last element)"""
         return self.weights + [self.bias]
 
+
 class Layer(Module):
     def __init__(self, n_inputs: int, n_outputs: int, activation_fn: Callable = lambda x: x):
         self.neurons = [
