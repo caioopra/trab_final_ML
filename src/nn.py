@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 from typing import Callable, List
 from random import uniform
+from math import exp
 
 from Value import Value
 
@@ -70,7 +71,6 @@ def relu(input: list, derivative: bool = False) -> list:
                 new.grad += 1 if x.data > 0 else 0
 
             new._backward = _backward
-
             new_nodes.append(new)
 
         return new_nodes
@@ -79,3 +79,27 @@ def relu(input: list, derivative: bool = False) -> list:
         return [1 if x > 0 else 0 for x in input]
 
     return [max(0, x) for x in input]
+
+
+def sigmoid(input: list, derivative: bool = False) -> list:
+    """
+    Applies the Sigmoid activation function to a list of Value objects.
+    """
+    if isinstance(input[0], Value):
+        new_nodes = []
+        for x in input:
+            sigmoid_value = 1 / (1 + exp(-x.data))
+            new = Value(data=sigmoid_value, operation="sigmoid", children=(x,))
+
+            def _backward():
+                new.grad += sigmoid_value * (1 - sigmoid_value)
+
+            new._backward = _backward
+            new_nodes.append(new)
+
+        return new_nodes
+
+    if derivative:
+        return [1 / (1 + exp(-x)) * (1 - (1 / (1 + exp(-x)))) for x in input]
+
+    return [1 / (1 + exp(-x)) for x in input]
