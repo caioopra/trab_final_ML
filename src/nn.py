@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from typing import Callable, List
 from random import uniform
-from math import exp
+from math import exp, tanh
 
 from Value import Value
 
@@ -152,3 +152,26 @@ def softmax(input: list, derivative: bool = False) -> list:
         return grad
 
     return softmax_values
+
+
+def tanh(input: list, derivative: bool = False) -> list:
+    """
+    Applies the hyperbolic tangent (tanh) activation function to a list of input values.
+    """
+    if isinstance(input[0], Value):
+        new_nodes = []
+        for x in input:
+            new = Value(data=tanh(x.data), operation="tanh", children=(x,))
+
+            def _backward():
+                new.grad += 1 - (tanh(x.data))**2
+
+            new._backward = _backward
+            new_nodes.append(new)
+
+        return new_nodes
+
+    if derivative:
+        return [1 - (tanh(x))**2 for x in input]
+
+    return [tanh(x) for x in input]
