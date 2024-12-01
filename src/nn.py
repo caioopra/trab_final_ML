@@ -104,3 +104,51 @@ def sigmoid(input: list, derivative: bool = False) -> list:
         return [1 / (1 + exp(-x)) * (1 - (1 / (1 + exp(-x)))) for x in input]
 
     return [1 / (1 + exp(-x)) for x in input]
+
+
+def softmax(input: list, derivative: bool = False) -> list:
+    """
+    Applies the Softmax activation function to a list of Value objects.
+    """
+    if isinstance(input[0], Value):
+        exp_values = [exp(x.data) for x in input]
+        sum_exp_values = sum(exp_values)
+        softmax_values = [exp(x.data) / sum_exp_values for x in input]
+        
+        new_nodes = []
+
+        for i, x in enumerate(input):
+            new = Value(data=softmax_values[i], operation="softmax", children=(x,))
+
+            def _backward():
+                # Initialize the gradient vector (size equal to the number of classes)
+                new.grad = [0] * len(softmax_values)  # Gradient for each class
+                
+                for j, _ in enumerate(softmax_values):
+                    if i == j:
+                        new.grad[i] += softmax_values[i] * (1 - softmax_values[i])
+                    else:
+                        new.grad[i] += -softmax_values[i] * softmax_values[j]
+
+            new._backward = _backward
+            new_nodes.append(new)
+
+        return new_nodes
+
+    exp_values = [exp(x) for x in input]
+    sum_exp_values = sum(exp_values)
+    softmax_values = [exp(x) / sum_exp_values for x in input]
+
+    if derivative:
+        for i in range(len(input)):
+            grad = [0] * len(softmax_values)
+                
+            for j, _ in enumerate(softmax_values):
+                if i == j:
+                    grad[i] += softmax_values[i] * (1 - softmax_values[i])
+                else:
+                    grad[i] += -softmax_values[i] * softmax_values[j]
+
+        return grad
+
+    return softmax_values
