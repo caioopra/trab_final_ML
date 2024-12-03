@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from typing import Callable, List
 from random import uniform
-from math import exp, tanh as math_tanh 
+from math import exp, tanh as math_tanh
 
 from Value import Value
 
@@ -156,17 +156,30 @@ def softmax(input: list, derivative: bool = False) -> list:
     return softmax_values
 
 
-def tanh(input: list, derivative: bool = False) -> list:
+def tanh(input: list, derivative: bool = False) -> List[Value] | Value:
     """
     Applies the hyperbolic tangent (tanh) activation function to a list of input values.
     """
+    if isinstance(input, Value):
+        t = math_tanh(input.data)
+
+        new = Value(data=t, operation="tanh", children=(input,))
+
+        def _backward():
+            input.grad += (1 - t**2) * new.grad
+
+        new._backward = _backward
+
+        return new
+
     if isinstance(input[0], Value):
         new_nodes = []
         for x in input:
-            new = Value(data=math_tanh(x.data), operation="tanh", children=(x,))
+            t = math_tanh(x.data)
+            new = Value(data=t, operation="tanh", children=(x,))
 
             def _backward():
-                new.grad += 1 - (math_tanh(x.data)) ** 2
+                x.grad += (1 - t**2) * new.grad
 
             new._backward = _backward
             new_nodes.append(new)
@@ -204,20 +217,19 @@ if __name__ == "__main__":
 
     print("ReLU:")
     y = relu(x)
-    print(f"Output: {[v.data for v in y]}")
+    print(f"Output: {[v for v in y]}")
 
     print("Sigmoid:")
     y = sigmoid(x)
-    print(f"Output: {[v.data for v in y]}")
+    print(f"Output: {[v for v in y]}")
     print(f"Expected: {[1 / (1 + exp(-v.data)) for v in x]}")
 
     print("Softmax:")
     y = softmax(x)
-    print(f"Output: {[v.data for v in y]}")
+    print(f"Output: {[v for v in y]}")
     print(f"Expected: {[exp(v.data) / sum([exp(v.data) for v in x]) for v in x]}")
 
     print("Tanh:")
     y = tanh(x)
-    print(f"Output: {[v.data for v in y]}")
+    print(f"Output: {[v for v in y]}")
     print(f"Expected: {[math_tanh(v.data) for v in x]}")
-
