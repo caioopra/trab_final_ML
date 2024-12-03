@@ -48,19 +48,21 @@ class Neuron(Module):
 
 
 class Layer(Module):
-    def __init__(self, n_inputs: int, n_outputs: int, activation_fn: Callable = lambda x: x):
+    def __init__(
+        self, n_inputs: int, n_outputs: int, activation_fn: Callable = lambda x: x
+    ):
         self.neurons = [
             Neuron(n_inputs, activation_fn=activation_fn) for _ in range(n_outputs)
         ]
         self.activation_fn = activation_fn
 
-    def __call__(self, x):
+    def __call__(self, x: List[Value]) -> Value | List[Value]:
         outs = [n(x) for n in self.neurons]
         return outs[0] if len(outs) == 1 else outs
 
-    def parameters(self):
+    def parameters(self) -> List[Value]:
         return [p for neuron in self.neurons for p in neuron.parameters()]
-    
+
 
 def relu(input: list, derivative: bool = False) -> list:
     if isinstance(input[0], Value):
@@ -114,7 +116,7 @@ def softmax(input: list, derivative: bool = False) -> list:
         exp_values = [exp(x.data) for x in input]
         sum_exp_values = sum(exp_values)
         softmax_values = [exp(x.data) / sum_exp_values for x in input]
-        
+
         new_nodes = []
 
         for i, x in enumerate(input):
@@ -123,7 +125,7 @@ def softmax(input: list, derivative: bool = False) -> list:
             def _backward():
                 # Initialize the gradient vector (size equal to the number of classes)
                 new.grad = [0] * len(softmax_values)  # Gradient for each class
-                
+
                 for j, _ in enumerate(softmax_values):
                     if i == j:
                         new.grad[i] += softmax_values[i] * (1 - softmax_values[i])
@@ -142,7 +144,7 @@ def softmax(input: list, derivative: bool = False) -> list:
     if derivative:
         for i in range(len(input)):
             grad = [0] * len(softmax_values)
-                
+
             for j, _ in enumerate(softmax_values):
                 if i == j:
                     grad[i] += softmax_values[i] * (1 - softmax_values[i])
@@ -164,7 +166,7 @@ def tanh(input: list, derivative: bool = False) -> list:
             new = Value(data=tanh(x.data), operation="tanh", children=(x,))
 
             def _backward():
-                new.grad += 1 - (tanh(x.data))**2
+                new.grad += 1 - (tanh(x.data)) ** 2
 
             new._backward = _backward
             new_nodes.append(new)
@@ -172,6 +174,25 @@ def tanh(input: list, derivative: bool = False) -> list:
         return new_nodes
 
     if derivative:
-        return [1 - (tanh(x))**2 for x in input]
+        return [1 - (tanh(x)) ** 2 for x in input]
 
     return [tanh(x) for x in input]
+
+
+if __name__ == "__main__":
+    # simple neuron test
+    print("Simple neuron test:")
+    n = Neuron(n_inputs=2)
+    x = [Value(1), Value(2)]
+    y = n(x)
+    print(f"Output of the neuron: {y}")
+    print(f"Parameters of the neuron: {n.parameters()}\n---------")
+
+    # simple layer test
+    print("Simple layer test:")
+    l = Layer(n_inputs=2, n_outputs=3)
+    x = [Value(1), Value(2)]
+    y = l(x)
+    print(f"Output of the layer: {y}")
+    print(f"Amount of neurons in layer: {len(l.neurons)}")
+    print(f"Parameters of the layer: {l.parameters()}\n---------")
