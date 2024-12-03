@@ -2,11 +2,11 @@ from typing import Callable, List
 
 import matplotlib.pyplot as plt
 from sklearn.datasets import make_classification
-from sklearn.metrics import (confusion_matrix, f1_score, precision_score,
-                             recall_score)
+from sklearn.metrics import confusion_matrix, f1_score, precision_score, recall_score
+from sklearn.model_selection import train_test_split
 
 from metrics import sse
-from nn import Layer, Module, relu, sigmoid, tanh
+from nn import Layer, Module, tanh
 from Value import Value
 
 
@@ -42,21 +42,23 @@ if __name__ == "__main__":
     model = MLP(3, [4, 4, 1], activation_fn=tanh)
 
     xs, ys = make_classification(
-        n_samples=100,
+        n_samples=1200,
         n_features=3,
         n_informative=3,
         n_redundant=0,
         n_classes=2,
         random_state=42,
     )
+    xs_train, xs_test, ys_train, ys_test = train_test_split(xs, ys, test_size=0.25)
 
-    EPOCHS = 50 
-    LR = 0.01
+    EPOCHS = 50
+    LR = 0.001
 
+    # Training loop
     for epoch in range(EPOCHS):
-        y_pred = [model(x) for x in xs]
+        y_pred_train = [model(x) for x in xs_train]
 
-        loss = sse(y_pred, ys)
+        loss = sse(y_pred_train, ys_train)
 
         for p in model.parameters():
             p.grad = 0
@@ -69,29 +71,25 @@ if __name__ == "__main__":
         if epoch % 5 == 0:
             print(f"Epoch {epoch} Loss: {loss.data}")
 
-    unique_preds = set(y_pred)
-    print(f"Unique predictions: {unique_preds}")
-    y_pred_labels = [1 if y.data > 0.5 else 0 for y in y_pred]  # for tanh 
+    # Testing loop
+    y_pred_test = [model(x) for x in xs_test]
+    y_pred_labels = [1 if y.data > 0.5 else 0 for y in y_pred_test]  # for tanh
 
     # Calculate precision and recall
-    precision = precision_score(ys, y_pred_labels, pos_label=1)
-    recall = recall_score(ys, y_pred_labels, pos_label=1)
-    f1 = f1_score(ys, y_pred_labels, pos_label=1)
+    precision = precision_score(ys_test, y_pred_labels, pos_label=1)
+    recall = recall_score(ys_test, y_pred_labels, pos_label=1)
+    f1 = f1_score(ys_test, y_pred_labels, pos_label=1)
 
     print(f"Final Precision: {precision}")
     print(f"Final Recall: {recall}")
     print(f"Final F1: {f1}")
 
-    cm = confusion_matrix(ys, y_pred_labels)
+    cm = confusion_matrix(ys_test, y_pred_labels)
     print("Confusion Matrix:")
     print(cm)
 
-    print("Layer1 ", model.layers[0])
-    print("Layer2 ", model.layers[1])
-    print("Layer 1 neurons ", model.layers[0].neurons)
-
     plt.figure(figsize=(10, 6))
-    plt.scatter(range(len(ys)), ys, color="blue", label="Ground Truth")
+    plt.scatter(range(len(ys_test)), ys_test, color="blue", label="Ground Truth")
     plt.scatter(
         range(len(y_pred_labels)),
         y_pred_labels,
@@ -99,8 +97,5 @@ if __name__ == "__main__":
         label="Predictions",
         marker="x",
     )
-    plt.xlabel("Sample Index")
-    plt.ylabel("Class Label")
-    plt.title("Ground Truth vs Predictions")
     plt.legend()
     plt.show()
