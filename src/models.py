@@ -1,13 +1,13 @@
 from typing import Callable, List
 
-from nn import Module, Neuron, Layer, tanh
-from Value import Value
-
-from metrics import sse
-
 import matplotlib.pyplot as plt
 from sklearn.datasets import make_classification
-from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
+from sklearn.metrics import (confusion_matrix, f1_score, precision_score,
+                             recall_score)
+
+from metrics import sse
+from nn import Layer, Module, relu, sigmoid, tanh
+from Value import Value
 
 
 class MLP(Module):
@@ -50,7 +50,7 @@ if __name__ == "__main__":
         random_state=42,
     )
 
-    EPOCHS = 15
+    EPOCHS = 50 
     LR = 0.01
 
     for epoch in range(EPOCHS):
@@ -69,7 +69,9 @@ if __name__ == "__main__":
         if epoch % 5 == 0:
             print(f"Epoch {epoch} Loss: {loss.data}")
 
-    y_pred_labels = [1 if y.data > 0 else 0 for y in y_pred]
+    unique_preds = set(y_pred)
+    print(f"Unique predictions: {unique_preds}")
+    y_pred_labels = [1 if y.data > 0.5 else 0 for y in y_pred]  # for tanh 
 
     # Calculate precision and recall
     precision = precision_score(ys, y_pred_labels, pos_label=1)
@@ -79,11 +81,14 @@ if __name__ == "__main__":
     print(f"Final Precision: {precision}")
     print(f"Final Recall: {recall}")
     print(f"Final F1: {f1}")
-    # print(y_pred)
 
     cm = confusion_matrix(ys, y_pred_labels)
     print("Confusion Matrix:")
     print(cm)
+
+    print("Layer1 ", model.layers[0])
+    print("Layer2 ", model.layers[1])
+    print("Layer 1 neurons ", model.layers[0].neurons)
 
     plt.figure(figsize=(10, 6))
     plt.scatter(range(len(ys)), ys, color="blue", label="Ground Truth")

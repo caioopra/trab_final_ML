@@ -46,6 +46,9 @@ class Neuron(Module):
         """Returns the parameters of the neuron (vector with the weights and the bias as last element)"""
         return self.weights + [self.bias]
 
+    def __repr__(self) -> str:
+        return f"Neuron with weights: {[w.data for w in self.weights]} and bias: {self.bias.data}; activation_fn={self.activation_fn}"
+
 
 class Layer(Module):
     def __init__(
@@ -62,6 +65,9 @@ class Layer(Module):
 
     def parameters(self) -> List[Value]:
         return [p for neuron in self.neurons for p in neuron.parameters()]
+
+    def __repr__(self) -> str:
+        return f"Layer with {len(self.neurons)} neurons; activation_fn={self.activation_fn}"
 
 
 def relu(input: List[Value], derivative: bool = False) -> List[Value]:
@@ -84,10 +90,21 @@ def relu(input: List[Value], derivative: bool = False) -> List[Value]:
     return [max(0, x) for x in input]
 
 
-def sigmoid(input: list, derivative: bool = False) -> list:
+def sigmoid(input: list, derivative: bool = False) -> List[Value] | Value:
     """
     Applies the Sigmoid activation function to a list of Value objects.
     """
+    if isinstance(input, Value):
+        sigmoid_value = 1 / (1 + exp(-input.data))
+        new = Value(data=sigmoid_value, operation="sigmoid", children=(input,))
+
+        def _backward():
+            input.grad += sigmoid_value * (1 - sigmoid_value) * new.grad
+
+        new._backward = _backward
+
+        return new
+
     if isinstance(input[0], Value):
         new_nodes = []
         for x in input:
@@ -95,7 +112,7 @@ def sigmoid(input: list, derivative: bool = False) -> list:
             new = Value(data=sigmoid_value, operation="sigmoid", children=(x,))
 
             def _backward():
-                new.grad += sigmoid_value * (1 - sigmoid_value)
+                x.grad += sigmoid_value * (1 - sigmoid_value) * new.grad
 
             new._backward = _backward
             new_nodes.append(new)
@@ -231,5 +248,5 @@ if __name__ == "__main__":
 
     print("Tanh:")
     y = tanh(x)
-    print(f"Output: {[v for v in y]}")
+    print(f"Output: {[v.data for v in y]}")
     print(f"Expected: {[math_tanh(v.data) for v in x]}")
