@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from typing import Callable, List
 from random import uniform
-from math import exp, tanh
+from math import exp, tanh as math_tanh 
 
 from Value import Value
 
@@ -163,10 +163,10 @@ def tanh(input: list, derivative: bool = False) -> list:
     if isinstance(input[0], Value):
         new_nodes = []
         for x in input:
-            new = Value(data=tanh(x.data), operation="tanh", children=(x,))
+            new = Value(data=math_tanh(x.data), operation="tanh", children=(x,))
 
             def _backward():
-                new.grad += 1 - (tanh(x.data)) ** 2
+                new.grad += 1 - (math_tanh(x.data)) ** 2
 
             new._backward = _backward
             new_nodes.append(new)
@@ -174,7 +174,7 @@ def tanh(input: list, derivative: bool = False) -> list:
         return new_nodes
 
     if derivative:
-        return [1 - (tanh(x)) ** 2 for x in input]
+        return [1 - (math_tanh(x)) ** 2 for x in input]
 
     return [tanh(x) for x in input]
 
@@ -215,4 +215,9 @@ if __name__ == "__main__":
     y = softmax(x)
     print(f"Output: {[v.data for v in y]}")
     print(f"Expected: {[exp(v.data) / sum([exp(v.data) for v in x]) for v in x]}")
+
+    print("Tanh:")
+    y = tanh(x)
+    print(f"Output: {[v.data for v in y]}")
+    print(f"Expected: {[math_tanh(v.data) for v in x]}")
 
