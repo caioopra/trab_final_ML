@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from typing import Callable, List
+from typing import Callable, List, Union
 from random import uniform
 from math import exp, tanh as math_tanh
 
@@ -59,7 +59,7 @@ class Layer(Module):
         ]
         self.activation_fn = activation_fn
 
-    def __call__(self, x: List[Value]) -> Value | List[Value]:
+    def __call__(self, x: List[Value]) -> Union[Value, List[Value]]:
         outs = [n(x) for n in self.neurons]
         return outs[0] if len(outs) == 1 else outs
 
@@ -90,7 +90,7 @@ def relu(input: List[Value], derivative: bool = False) -> List[Value]:
     return [max(0, x) for x in input]
 
 
-def sigmoid(input: list, derivative: bool = False) -> List[Value] | Value:
+def sigmoid(input: list, derivative: bool = False) -> Union[List[Value] | Value]:
     """
     Applies the Sigmoid activation function to a list of Value objects.
     """
@@ -125,10 +125,24 @@ def sigmoid(input: list, derivative: bool = False) -> List[Value] | Value:
     return [1 / (1 + exp(-x)) for x in input]
 
 
-def softmax(input: list, derivative: bool = False) -> list:
+def softmax(input: Union[Value, list], derivative: bool = False) -> Union[Value, list]:
     """
-    Applies the Softmax activation function to a list of Value objects.
+    Applies the Softmax activation function to a Value object or a list of Value objects.
     """
+    if isinstance(input, Value):
+        exp_value = exp(input.data)
+        sum_exp_value = exp_value  # Since it's a single value, sum is the value itself
+        softmax_value = exp_value / sum_exp_value
+
+        new = Value(data=softmax_value, operation="softmax", children=(input,))
+
+        def _backward():
+            input.grad += new.grad * softmax_value * (1 - softmax_value)
+
+        new._backward = _backward
+
+        return new
+
     if isinstance(input[0], Value):
         exp_values = [exp(x.data) for x in input]
         sum_exp_values = sum(exp_values)
@@ -140,14 +154,11 @@ def softmax(input: list, derivative: bool = False) -> list:
             new = Value(data=softmax_values[i], operation="softmax", children=(x,))
 
             def _backward():
-                # Initialize the gradient vector (size equal to the number of classes)
-                new.grad = [0] * len(softmax_values)  # Gradient for each class
-
                 for j, _ in enumerate(softmax_values):
                     if i == j:
-                        new.grad[i] += softmax_values[i] * (1 - softmax_values[i])
+                        x.grad += new.grad * softmax_values[i] * (1 - softmax_values[i])
                     else:
-                        new.grad[i] += -softmax_values[i] * softmax_values[j]
+                        x.grad += new.grad * -softmax_values[i] * softmax_values[j]
 
             new._backward = _backward
             new_nodes.append(new)
@@ -159,21 +170,21 @@ def softmax(input: list, derivative: bool = False) -> list:
     softmax_values = [exp(x) / sum_exp_values for x in input]
 
     if derivative:
+        grads = []
         for i in range(len(input)):
             grad = [0] * len(softmax_values)
-
             for j, _ in enumerate(softmax_values):
                 if i == j:
                     grad[i] += softmax_values[i] * (1 - softmax_values[i])
                 else:
                     grad[i] += -softmax_values[i] * softmax_values[j]
-
-        return grad
+            grads.append(grad)
+        return grads
 
     return softmax_values
 
 
-def tanh(input: list, derivative: bool = False) -> List[Value] | Value:
+def tanh(input: list, derivative: bool = False) -> Union[List[Value] | Value]:
     """
     Applies the hyperbolic tangent (tanh) activation function to a list of input values.
     """
