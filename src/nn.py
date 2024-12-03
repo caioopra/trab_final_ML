@@ -64,7 +64,7 @@ class Layer(Module):
         return [p for neuron in self.neurons for p in neuron.parameters()]
 
 
-def relu(input: list, derivative: bool = False) -> list:
+def relu(input: List[Value], derivative: bool = False) -> List[Value]:
     if isinstance(input[0], Value):
         new_nodes = []
         for x in input:
@@ -196,3 +196,23 @@ if __name__ == "__main__":
     print(f"Output of the layer: {y}")
     print(f"Amount of neurons in layer: {len(l.neurons)}")
     print(f"Parameters of the layer: {l.parameters()}\n---------")
+
+    # activation functions test
+    print("Activation functions test:")
+    x = [Value(0), Value(1), Value(-2), Value(3)]
+    print(f"Input: {[v.data for v in x]}")
+
+    print("ReLU:")
+    y = relu(x)
+    print(f"Output: {[v.data for v in y]}")
+
+    print("Sigmoid:")
+    y = sigmoid(x)
+    print(f"Output: {[v.data for v in y]}")
+    print(f"Expected: {[1 / (1 + exp(-v.data)) for v in x]}")
+
+    print("Softmax:")
+    y = softmax(x)
+    print(f"Output: {[v.data for v in y]}")
+    print(f"Expected: {[exp(v.data) / sum([exp(v.data) for v in x]) for v in x]}")
+
