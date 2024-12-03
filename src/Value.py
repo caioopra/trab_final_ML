@@ -106,17 +106,16 @@ class Value:
         for node in topology[::-1]:
             node._backward()
 
-        self._last_topology = topology  # TODO: remove
-
 
 if __name__ == "__main__":
-    a = Value(1)
-    b = Value(2)
-
-    c = a + b
-    d = c * b
-    e = d**2
-    e.backward()
-    [print(node) for node in [a, b, c, d, e]]
-    print(e._last_topology)  # TODO: remove
+    a = Value(-4)
+    b = Value(5)
+    c = Value(9)
+    d = a + b
+    e = d * c
+    f = Value(-3)
+    g = e * f    
+    g.backward()
+    
+    [print(node) for node in [a, b, c, d, e, f, g]]
 
