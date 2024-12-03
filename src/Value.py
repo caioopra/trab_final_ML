@@ -106,6 +106,14 @@ class Value:
         for node in topology[::-1]:
             node._backward()
 
+    def __truediv__(self, other: Union[int, float, "Value"]) -> "Value":
+        other = other if isinstance(other, Value) else Value(other)
+
+        return self * other**-1
+
+    def __rtruediv__(self, other: Union[int, float, "Value"]) -> "Value":
+        return other * self**-1
+
 
 if __name__ == "__main__":
     a = Value(-4)
@@ -114,8 +122,7 @@ if __name__ == "__main__":
     d = a + b
     e = d * c
     f = Value(-3)
-    g = e * f    
+    g = e * f
     g.backward()
-    
-    [print(node) for node in [a, b, c, d, e, f, g]]
 
+    [print(node) for node in [a, b, c, d, e, f, g]]
