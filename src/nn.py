@@ -71,13 +71,23 @@ class Layer(Module):
 
 
 def relu(input: List[Value], derivative: bool = False) -> List[Value]:
+    if isinstance(input, Value):
+        new = Value(data=max(0, input.data), operation="relu", children=(input,))
+
+        def _backward():
+            input.grad += new.grad * (1 if input.data > 0 else 0)
+
+        new._backward = _backward
+
+        return new
+
     if isinstance(input[0], Value):
         new_nodes = []
         for x in input:
             new = Value(data=max(0, x.data), operation="relu", children=(x,))
 
             def _backward():
-                new.grad += 1 if x.data > 0 else 0
+                x.grad += new.grad * (1 if x.data > 0 else 0)
 
             new._backward = _backward
             new_nodes.append(new)

@@ -14,12 +14,24 @@ class MLP(Module):
     """Multi-layer perceptron class; a fully-connected neural network."""
 
     def __init__(
-        self, n_inputs: int, n_outputs: List, activation_fn: Callable = lambda x: x
+        self,
+        n_inputs: int,
+        n_outputs: List,
+        activation_fn: Callable = lambda x: x,
+        regression: bool = False,
     ):
         sz = [n_inputs] + n_outputs
 
         self.layers = [
-            Layer(sz[i], sz[i + 1], activation_fn=activation_fn)
+            Layer(
+                sz[i],
+                sz[i + 1],
+                activation_fn=(  # if it is a regression problem, the last layer shouldn't have an activation function
+                    activation_fn
+                    if not regression or i < len(n_outputs) - 1
+                    else lambda x: x
+                ),
+            )
             for i in range(len(n_outputs))
         ]
 
