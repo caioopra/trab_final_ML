@@ -1,5 +1,5 @@
 from typing import Union
-
+import math
 
 class Value:
     """Class that stores a single value and it's gradient. Works 'similarly' to PyTorch's tensors."""
@@ -67,6 +67,17 @@ class Value:
 
         return output
 
+    def log(self) -> "Value":
+        assert self.data > 0
+
+        output = Value(math.log(self.data), operation="log", children=(self,))
+
+        def _backward():
+            self.grad += output.grad * (1 / self.data)  # Corrigido para apenas multiplicar pelo gradiente da saída
+
+        output._backward = _backward
+        return output
+    
     def __sub__(self, other: Union[int, float, "Value"]) -> "Value":
         return self + (-other)
 
