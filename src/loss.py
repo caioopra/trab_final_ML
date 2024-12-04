@@ -16,8 +16,9 @@ def categorical_cross_entropy(
 
     for yt, yp in zip(y_true, y_pred):
         prob = yp[yt]
-        loss += -Value(log(prob.data))  
-    
+
+        loss -= prob.log()
+
     loss = loss / len(y_true)
 
     if value:
@@ -52,6 +53,7 @@ if __name__ == "__main__":
 
     loss_custom = categorical_cross_entropy(y_true, y_pred)
     loss_custom.backward()
+    print(loss_custom.grad)
 
     for pred in y_pred:
         print([v.grad for v in pred])
