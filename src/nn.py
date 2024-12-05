@@ -227,7 +227,7 @@ def tanh(input: list, derivative: bool = False) -> Union[List[Value] | Value]:
     if derivative:
         return [1 - (math_tanh(x)) ** 2 for x in input]
 
-    return [tanh(x) for x in input]
+    return [math_tanh(x) for x in input]
 
 
 if __name__ == "__main__":
