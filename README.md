@@ -25,7 +25,8 @@ Projeto de Machine Learning
     ├── loss.py                                         # Implementação das funções de perda 
     ├── metrics.py                                      # Implementação das métricas de avaliação do modelo (MSE, RMSE e SSE)
     ├── models.py                                       # Implementação dos modelos de aprendizado de máquina (definição da classe MLP e pequeno exemplo de uso)
-    ├── multi_classification.ipynb                      # Modelo de classificação multiclasse
+    ├── multi_classification1.ipynb                      # Modelo de classificação multiclasse para dataset iris
+    ├── multi_classification2.ipynb                      # Modelo de classificação multiclasse para dados de diabetes
     ├── nn.py                                           # Implementação de redes neurais (principais componentes de redes neurais (Neuron e Layer), bem como funções de ativação)
     ├── regression_gym_members.ipynb                    # Modelo de regressão no dataset de membros da academia, prevendo quantidade de calorias queimadas durante exercício
     └── Value.py                                        # Componente que encapsula comportamento de backpropagation e salva dados de cada valor no modelo
@@ -95,7 +96,7 @@ O modelo de classificação binária foi treinado utilizando o conjunto de dados
 
 #### Classificação Multiclasse
 
-O modelo de classificação multiclasse foi treinado utilizando o conjunto de dados `diabetes_012_health_indicators_BRFSS2015.csv`. O notebook multi_classification.ipynb contém todo o processo de pré-processamento, treinamento e avaliação do modelo.
+O modelo de classificação multiclasse foi treinado utilizando o conjunto de dados Iris. O notebook multi_classification1.ipynb contém todo o processo de pré-processamento, treinamento e avaliação do modelo.
 
 ### Execução
 
